@@ -1,12 +1,13 @@
-import React, { Component } from 'react';
+import React  from 'react';
 import Nav from './components/Nav';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import NotesList from './components/NotesList';
 import CreateNote from './components/CreateNote';
+import NoteDetail from './components/NoteDetail';
 import './App.css';
 
-class App extends Component {
+class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -17,6 +18,8 @@ class App extends Component {
       got_notes: false,
       notes: [],
       adding_note: false, //---------------------------------------------подумать 
+      edit_note: false, // + 1 подумать
+      current_note: {},
     };
   }
 
@@ -43,6 +46,7 @@ class App extends Component {
 
   
 
+  //handle enter
   handle_login = (e, data) => {
     e.preventDefault();
     fetch('http://localhost:8000/api/jwt-auth/', {
@@ -63,23 +67,7 @@ class App extends Component {
       });
   };
 
-  get_notes = () => {
-    //Получаем замeтки
-    fetch("http://localhost:8000/api/notes", {
-      headers: {
-        Authorization: `JWT ${localStorage.getItem('token')}`
-      }
-    })
-    .then(res => res.json())
-    .then(json => {
-      console.log(json)
-      this.setState({ 
-        notes: json,
-        got_notes: true, 
-      })
-    });
-  }
-
+  //handle registaration
   handle_signup = (e, data) => {
     e.preventDefault();
     fetch('http://localhost:8000/api/users/', {
@@ -100,6 +88,7 @@ class App extends Component {
       });
   };
 
+  //handle escape
   handle_logout = () => {
     localStorage.removeItem('token');
     this.setState({ logged_in: false, email: '' });
@@ -110,33 +99,52 @@ class App extends Component {
       displayed_form: form
     });
   };
+  
+  //========================================= API Functions ====================================
 
-  //handle добавить заметку
-  handle_add_note = () => {
-    console.log("Добавляем заметку...");
-    var data = {
-        'title': 'Я 2 заметка через API',
-        'body': 'Что то про меня'
-    }
+  //Получаем замeтки
+  get_notes = () => {
     fetch("http://localhost:8000/api/notes", {
-      method: 'POST',
       headers: {
-        Authorization: `JWT ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
+        Authorization: `JWT ${localStorage.getItem('token')}`
+      }
     })
+    .then(res => res.json())
+    .then(json => {
+      console.log(json)
+      this.setState({ 
+        notes: json,
+        got_notes: true, 
+      })
+    });
   }
 
   //Отобразить форму для создания новой заметки
   handle_create_note = () => {
-    console.log("Создаем заметку")
+    console.log("Создаем заметку");
     this.setState({
+      edit_note: false,
       adding_note: true,
     });
   }
 
+  //Отобразить форму редактирования заметки
+  handle_edit_note = (note_id) => {
+    var m;
+    this.state.notes.map((note) => {
+      if(note.id === note_id) {
+        m = note;
+      }
+    })
+    this.setState({
+      current_note: m,
+      adding_note: false,
+      edit_note: true
+    })
+  }
+
   render() {
+    //Форма входа и регистрации
     let form;
     switch (this.state.displayed_form) {
       case 'login':
@@ -149,10 +157,10 @@ class App extends Component {
         form = null;
     }
 
-    //Вывод заметок
+    //Вывод списка заметок
     let notesList;
     if (this.state.got_notes && this.state.logged_in) {
-      notesList = <NotesList notes={this.state.notes} />
+      notesList = <NotesList notes={this.state.notes} handle_edit_note={(note_id) => this.handle_edit_note(note_id)}/>
     } else if(this.state.logged_in && !this.state.got_notes) {
       notesList = <p>Loading...</p>;
     } else {
@@ -168,19 +176,12 @@ class App extends Component {
             {notesList}
           </nav>
         </div>
-        
       )
     } else {
       notesList = null;
     }// Это все исправить 
 
-    //Добавить заметку
-    let addNote;
-    if(this.state.logged_in && this.state.got_notes) {
-      addNote = <button className='btn btn-danger' onClick={() => this.handle_add_note()}>Добавить запись</button>
-    } else {
-      addNote = null;
-    }
+  
 
     return (
       <div className="App">
@@ -190,7 +191,7 @@ class App extends Component {
           handle_logout={this.handle_logout}
           email={this.state.email}
         />
-        {form}
+        {form} 
 
         <div className="row">
          <div className="col-4">
@@ -198,14 +199,13 @@ class App extends Component {
          </div>
 
          <div className="col-8">
-          {this.state.adding_note ? <CreateNote/> : null}
+          {this.state.logged_in && this.state.adding_note ? <CreateNote/> : null}
+          {this.state.logged_in && this.state.edit_note ? <NoteDetail data={this.state.current_note}/> : null}
          </div>
         </div>
       
-        
-        {addNote}
       </div>
-    );
+    )
   }
 }
 

@@ -1,5 +1,4 @@
 import React  from 'react';
-import PropTypes from 'prop-types';
 
 import "./css/NotesList.css"
 
@@ -12,8 +11,10 @@ class NotesList extends React.Component {
     }
     render() {
         const listItems = this.state.notes.map((note) => 
-            <li key={note.id}>
-                <h4>{note.title} Id = {note.id}</h4>
+            <li id="noteItem" key={note.id} onClick={() => this.props.handle_edit_note(note.id)}>
+                <h4>{note.title}</h4>
+                <h5>{note.body}</h5>
+                <hr/>
             </li>
         );
         return (

@@ -93,6 +93,14 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
 )
 
+#E-mail confirmation
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'klishin.nd16@gmail.com'
+EMAIL_HOST_PASSWORD = 'kn02054782'
+
 
 LANGUAGE_CODE = 'en-us'
 

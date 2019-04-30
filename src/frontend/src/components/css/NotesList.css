@@ -5,3 +5,10 @@ ul#notes {
     width: 100%;
     color: #999;
   }
+
+li#noteItem {
+  margin: 0%;
+}
+li#noteItem:hover {
+  background-color: whitesmoke;
+}
